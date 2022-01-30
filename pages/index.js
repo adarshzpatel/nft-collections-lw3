@@ -10,7 +10,7 @@ export default function Home() {
   const [presaleStarted, setPresaleStarted] = useState(false);
   const [presaleEnded, setPresaleEnded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
+  const [isOwner, setIsOwner] = useState();
   const [tokenIdsMinted, setTokenIdsMinted] = useState("0");
   const web3ModalRef = useRef();
 
@@ -29,10 +29,10 @@ export default function Home() {
 
       const tx = await whitelistContract.presaleMint({
         value: utils.parseEther("0.01")
-      }).catch(err=>console.log(err));
+      });
 
       setLoading(true);
-      await tx.wait().catch(err=>console.log(err));;
+      await tx.wait();
       setLoading(false);
       toast.success("You have successfully minted a Crypto Dev!");
     } catch (err) {
@@ -41,23 +41,25 @@ export default function Home() {
   }
 
   const publicMint = async () => {
+    
     try{
       const signer = await getProviderOrSigner(true);
-      const whitelistContract = new Contract({
+      const whitelistContract = new Contract(
         NFT_CONTRACT_ADDRESS,
         abi,
         signer
-      });
+      );
       //call the mint from the contract to mint the crypto dev
+      
       const tx = await whitelistContract.mint({
         value:utils.parseEther("0.01"),
       });
       setLoading(true);
       await tx.wait();
       setLoading(false);
-      toast.success("You have successfully minted a Crypto Dev!");
+      console.success("You have successfully minted a Crypto Dev!");
     } catch(err) {
-      toast.error(err);
+      console.error(err);
     }
   }
 
@@ -66,7 +68,7 @@ export default function Home() {
       await getProviderOrSigner();
       setWalletConnected(true);
     } catch(err) {
-      toast.error(err);
+      console.error(err);
     }
   }
 
@@ -85,7 +87,7 @@ export default function Home() {
       setLoading(false);
       await checkIfPresaleStarted();
     } catch(err){
-      toast.error(err);
+      console.error(err);
     }
   }
   
@@ -189,6 +191,7 @@ export default function Home() {
         providerOptions: {},
         disableInjectedProvider: false,
       })
+
       connectWallet();
    
       const _presaleStarted = checkIfPresaleStarted();
@@ -258,7 +261,7 @@ export default function Home() {
             Presale has started!!! If your address is whitelisted, Mint a
             Crypto Dev 🥳
           </div>
-          <button className="bg-stone-700 hover:bg-stone-600 active:bg-stone-800 hover:-skew-x-12 transition-all duration-500 ease-out text-white px-6 py-3" onClick={()=>presaleMint()}>
+          <button className="bg-stone-700 hover:bg-stone-600 active:bg-stone-800 hover:-skew-x-12 transition-all duration-500 ease-out text-white px-6 py-3" onClick={presaleMint}>
             Presale Mint 🚀
           </button>
         </div>
