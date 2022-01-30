@@ -61,7 +61,7 @@ export default function Home() {
     }
   }
 
-  const connectWwallet = async () => {
+  const connectWallet = async () => {
     try{
       await getProviderOrSigner();
       setWalletConnected(true);
@@ -128,7 +128,22 @@ export default function Home() {
       return false;
     }
   };
-
+  const getTokenIdsMinted = async () => {
+    try {
+      // Get the provider from web3Modal, which in our case is MetaMask
+      // No need for the Signer here, as we are only reading state from the blockchain
+      const provider = await getProviderOrSigner();
+      // We connect to the Contract using a Provider, so we will only
+      // have read-only access to the Contract
+      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
+      // call the tokenIds from the contract
+      const _tokenIds = await nftContract.tokenIds();
+      //_tokenIds is a `Big Number`. We need to convert the Big Number to a string
+      setTokenIdsMinted(_tokenIds.toString());
+    } catch (err) {
+      console.error(err);
+    }
+  };
   //get owner calls the contract to retreive the owner 
   const getOwner = async() => {
     try{
@@ -265,7 +280,7 @@ export default function Home() {
       </Head>
       <div >
         <div>
-          <h1>Welcome to Crypto Devs!</h1>
+          <h1 className="text-4xl font-extrabold">Welcome to Crypto Devs!</h1>
           <div >
             Its an NFT collection for developers in Crypto.
           </div>
