@@ -29,14 +29,14 @@ export default function Home() {
 
       const tx = await whitelistContract.presaleMint({
         value: utils.parseEther("0.01")
-      });
+      }).catch(err=>console.log(err));
 
       setLoading(true);
-      await tx.wait();
+      await tx.wait().catch(err=>console.log(err));;
       setLoading(false);
       toast.success("You have successfully minted a Crypto Dev!");
     } catch (err) {
-      toast.error(err);
+      console.error(err);
     }
   }
 
@@ -72,19 +72,19 @@ export default function Home() {
 
   const startPresale = async () => {
     try{
+      console.log("Started Presale")
       const signer = await getProviderOrSigner(true);
       const whitelistContract = new Contract(
         NFT_CONTRACT_ADDRESS,
         abi,
         signer
       )
-
       const tx = await whitelistContract.startPresale();
       setLoading(true);
       await tx.wait();
       setLoading(false);
       await checkIfPresaleStarted();
-    } catch (err){
+    } catch(err){
       toast.error(err);
     }
   }
@@ -107,15 +107,9 @@ export default function Home() {
     try {
     
       const provider = await getProviderOrSigner();
-      // We connect to the Contract using a Provider, so we will only
-      // have read-only access to the Contract
       const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
-      // call the presaleEnded from the contract
       const _presaleEnded = await nftContract.presaleEnded();
-      // _presaleEnded is a Big Number, so we are using the lt(less than function) insteal of `<`
-      // Date.now()/1000 returns the current time in seconds
-      // We compare if the _presaleEnded timestamp is less than the current time
-      // which means presale has ended
+  
       const hasEnded = _presaleEnded.lt(Math.floor(Date.now() / 1000));
       if (hasEnded) {
         setPresaleEnded(true);
@@ -128,6 +122,7 @@ export default function Home() {
       return false;
     }
   };
+
   const getTokenIdsMinted = async () => {
     try {
       // Get the provider from web3Modal, which in our case is MetaMask
@@ -145,14 +140,17 @@ export default function Home() {
     }
   };
   //get owner calls the contract to retreive the owner 
-  const getOwner = async() => {
+  const getOwner = async () => {
     try{
       const provider = await getProviderOrSigner();
       const nftContract = new Contract(NFT_CONTRACT_ADDRESS,abi,provider);
       const _owner = await nftContract.owner();
       const signer = getProviderOrSigner(true);
-      const address = await signer.getAddress();
+      const address = signer.getAddress();
+      console.log(_owner);
+      console.log(address);
       if(address.toLowerCase() === _owner.toLowerCase()){
+        console.log("I am owner")
         setIsOwner(true);
       }
       
@@ -160,6 +158,7 @@ export default function Home() {
       toast.error(err.message);
     }
   }
+
   const getProviderOrSigner = async (needSigner = false) => {
     // Connect to Metamask
     // Since we store `web3Modal` as a reference, we need to access the `current` value to get access to the underlying object
@@ -169,7 +168,7 @@ export default function Home() {
     // If user is not connected to the Rinkeby network, let them know and throw an error
     const { chainId } = await web3Provider.getNetwork();
     if (chainId !== 4) {
-      toast.alert("Change the network to Rinkeby");
+      console.error("Change the network to Rinkeby");
       toast('Change the network to Rinkeby', {
         icon: '⚠',
       });
@@ -191,8 +190,9 @@ export default function Home() {
         disableInjectedProvider: false,
       })
       connectWallet();
-
+   
       const _presaleStarted = checkIfPresaleStarted();
+      
       if (_presaleStarted) {
         checkIfPresaleEnded();
       }
@@ -220,20 +220,22 @@ export default function Home() {
   const renderButton = () => {
     if(!walletConnected){
       return (
-        <button onClick={connectWallet}>
+        <button className="bg-stone-700 hover:bg-stone-600 active:bg-stone-800 hover:-skew-x-12 transition-all duration-500 ease-out text-white px-6 py-3" onClick={connectWallet}>
           Connect your wallet
         </button>
       )
     }
 
     if (loading) {
-      return <button >Loading...</button>;
+      return <button className="bg-stone-700 hover:bg-stone-600 active:bg-stone-800 hover:-skew-x-12 transition-all duration-500 ease-out text-white px-6 py-3">
+        Loading...
+        </button>;
     }
 
     // If connected user is the owner, and presale hasnt started yet, allow them to start the presale
     if (isOwner && !presaleStarted) {
       return (
-        <button  onClick={startPresale}>
+        <button className="bg-stone-700 hover:bg-stone-600 active:bg-stone-800 hover:-skew-x-12 transition-all duration-500 ease-out text-white px-6 py-3"  onClick={startPresale}>
           Start Presale!
         </button>
       );
@@ -242,8 +244,8 @@ export default function Home() {
     // If connected user is not the owner but presale hasn't started yet, tell them that
     if (!presaleStarted) {
       return (
-        <div>
-          <div>Presale hasnt started!</div>
+        <div className="bg-stone-700 hover:bg-stone-600 active:bg-stone-800 hover:-skew-x-12 transition-all duration-500 ease-out text-white px-6 py-3">
+          <div>Presale hasn't started!</div>
         </div>
       );
     }
@@ -252,11 +254,11 @@ export default function Home() {
     if (presaleStarted && !presaleEnded) {
       return (
         <div>
-          <div >
+          <div className="mb-4 text-stone-500">
             Presale has started!!! If your address is whitelisted, Mint a
             Crypto Dev 🥳
           </div>
-          <button onClick={presaleMint}>
+          <button className="bg-stone-700 hover:bg-stone-600 active:bg-stone-800 hover:-skew-x-12 transition-all duration-500 ease-out text-white px-6 py-3" onClick={()=>presaleMint()}>
             Presale Mint 🚀
           </button>
         </div>
@@ -265,7 +267,7 @@ export default function Home() {
     // If presale started and has ended, its time for public minting
     if (presaleStarted && presaleEnded) {
       return (
-        <button  onClick={publicMint}>
+        <button className="bg-stone-700 hover:bg-stone-600 active:bg-stone-800 hover:-skew-x-12 transition-all duration-500 ease-out text-white px-6 py-3"  onClick={publicMint}>
           Public Mint 🚀
         </button>
       );
@@ -278,25 +280,32 @@ export default function Home() {
         <meta name="description" content="Whitelist-Dapp" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div >
-        <div>
-          <h1 className="text-4xl font-extrabold">Welcome to Crypto Devs!</h1>
-          <div >
+      <div 
+      className="h-screen font-serif flex flex-col ">
+      <div className="container max-w-screen-xl mx-auto justify-around gap-8 grid md:grid-cols-3 items-center p-8" >
+        <div className=" gap-8 md:col-span-1 text-neutral-500">
+          <h1 className="text-4xl font-extrabold  mb-4 text-neutral-800">Welcome to Crypto Devs!</h1>
+          <div className="text-lg ">
             Its an NFT collection for developers in Crypto.
           </div>
-          <div>
-            {tokenIdsMinted}/20 have been minted
+          <div className="text-2xl text-neutral-600 font-semibold border-t-2 border-b-2 p-4 my-4">
+            {tokenIdsMinted}/20 {' '} 
+            <span className="font-normal italic text-neutral-500 text-lg">
+              have been minted
+            </span>
           </div>
           {renderButton()}
         </div>
-        <div>
-          <img src="./cryptodevs/0.svg" />
+        <div className="md:col-span-2 p-8">
+          <img src="https://ethereum.org/static/ddb9a22d53fdaaae70c0a0d94577f2aa/52295/eth.png" />
         </div>
       </div>
-
-      <footer >
-        Made with &#10084; by Crypto Devs
+      <footer className="grid place-items-center py-8">
+        <div className="text-stone-600  ">
+        Made by  <a className="border-b-2 font-semibold border-stone-400 text-stone-900 italic"  href='https://twitter.com/adarshzpatel'>Adarsh</a>  on <a className="border-b-2 border-stone-400 font-semibold text-stone-900 italic" href="https://learnweb3.io">learnweb3.io</a>
+        </div>
       </footer>
+      </div>
     </div>
   );
 }
