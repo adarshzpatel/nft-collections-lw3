@@ -1,4 +1,4 @@
-export const abi = [
+export const abi =  [
   {
     "inputs": [
       {
@@ -230,6 +230,13 @@ export const abi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "mint",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   },
   {
